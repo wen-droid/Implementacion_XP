@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Panel XP — Validación y Evaluación</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f2f5;
+      color: #1a1a2e;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #1a1a2e;
+      color: white;
+      padding: 16px 28px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 18px;
+      font-weight: 500;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      padding: 24px;
+    }
+
+    .panel {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .panel-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 1.5px solid #f0f2f5;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ── Formularios ── */
+    .form-group { margin-bottom: 12px; }
+
+    label {
+      display: block;
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 4px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 13px;
+      outline: none;
+      transition: border .2s;
+    }
+
+    input:focus, select:focus { border-color: #6c63ff; }
+
+    .btn {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity .2s;
+    }
+    .btn:hover { opacity: .85; }
+    .btn-purple { background: #6c63ff; color: white; }
+    .btn-teal   { background: #0d9488; color: white; }
+
+    /* ── Listas ── */
+    .list { margin-top: 16px; }
+
+    .list-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      background: #f8f9fb;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .list-item:hover { background: #eef0f8; }
+    .list-item.selected { background: #ede9ff; border: 1px solid #6c63ff; }
+
+    .badge {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+    .badge-sin   { background: #f1f3f5; color: #888; }
+    .badge-con   { background: #d1fae5; color: #065f46; }
+    .badge-warn  { background: #fef3c7; color: #92400e; }
+    .badge-ok    { background: #d1fae5; color: #065f46; }
+    .badge-fail  { background: #fee2e2; color: #991b1b; }
+    .badge-pend  { background: #e0e7ff; color: #3730a3; }
+
+    /* ── Detalle de pruebas ── */
+    .detalle {
+      margin-top: 16px;
+      border-top: 1.5px solid #f0f2f5;
+      padding-top: 14px;
+    }
+
+    .detalle-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #666;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .prueba-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 10px;
+      border-radius: 6px;
+      margin-bottom: 6px;
+      background: #f8f9fb;
+      font-size: 12px;
+    }
+
+    /* ── Contadores ── */
+    .contadores {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .contador {
+      text-align: center;
+      padding: 10px 6px;
+      border-radius: 8px;
+      background: #f8f9fb;
+    }
+
+    .contador-num {
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .contador-label {
+      font-size: 10px;
+      color: #888;
+      margin-top: 2px;
+    }
+
+    .cnt-total  .contador-num { color: #6c63ff; }
+    .cnt-ok     .contador-num { color: #059669; }
+    .cnt-fail   .contador-num { color: #dc2626; }
+    .cnt-pend   .contador-num { color: #6366f1; }
+
+    /* ── Aviso flotante ── */
+    .aviso {
+      display: none;
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      background: #fef3c7;
+      border: 1.5px solid #960a0a;
+      border-radius: 12px;
+      padding: 14px 18px;
+      max-width: 300px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+      z-index: 999;
+    }
+
+    .aviso.visible { display: flex; flex-direction: column; gap: 8px; }
+
+    .aviso-msg {
+      font-size: 13px;
+      font-weight: 500;
+      color: #78350f;
+    }
+
+    .aviso-funcion {
+      font-size: 11px;
+      color: #92400e;
+    }
+
+    .aviso-close {
+      align-self: flex-end;
+      background: #f7a9b3;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .empty {
+      text-align: center;
+      color: #bbb;
+      font-size: 13px;
+      padding: 20px 0;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  💻Panel XP — Validación de Pruebas y Evaluación Sintáctica
+</header>
+
+<div class="layout">
+
+  <!-- ══════════════════════════════════════
+       PANEL IZQUIERDO — Validación de pruebas (tu US)
+  ══════════════════════════════════════ -->
+  <div class="panel">
+    <div class="panel-title">✅ Validación de Pruebas TDD</div>
+
+    <!-- Agregar tarea -->
+    <div class="form-group">
+      <label>Nombre de la tarea</label>
+      <input type="text" id="inputTarea" placeholder="Ej: Implementar contador">
+    </div>
+    <button class="btn btn-purple" onclick="agregarTarea()">
+      + Agregar Tarea
+    </button>
+
+    <!-- Agregar prueba -->
+    <div style="margin-top:16px; padding-top:14px; border-top:1.5px solid #f0f2f5;">
+      <div class="form-group">
+        <label>Seleccionar tarea</label>
+        <select id="selectTarea">
+          <option value="">— Seleccionar —</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Nombre de la prueba</label>
+        <input type="text" id="inputPrueba" placeholder="Ej: test_contador">
+      </div>
+      <div class="form-group">
+        <label>Resultado</label>
+        <select id="selectResultado">
+          <option value="">— Sin ejecutar —</option>
+          <option value="passed">passed</option>
+          <option value="failed">failed</option>
+        </select>
+      </div>
+      <button class="btn btn-purple" onclick="agregarPrueba()">
+        + Agregar Prueba
+      </button>
+    </div>
+
+    <!-- Lista de tareas -->
+    <div class="list" id="listaTareas">
+      <div class="empty">No hay tareas registradas</div>
+    </div>
+
+    <!-- Detalle pruebas -->
+    <div class="detalle" id="detallePruebas" style="display:none">
+      <div class="detalle-title" id="detalleTituloTarea"></div>
+      <div id="listaPruebas"></div>
+      <div class="contadores">
+        <div class="contador cnt-total">
+          <div class="contador-num" id="cntTotal">0</div>
+          <div class="contador-label">Total</div>
+        </div>
+        <div class="contador cnt-ok">
+          <div class="contador-num" id="cntOk">0</div>
+          <div class="contador-label">Aprobadas</div>
+        </div>
+        <div class="contador cnt-fail">
+          <div class="contador-num" id="cntFail">0</div>
+          <div class="contador-label">Fallidas</div>
+        </div>
+        <div class="contador cnt-pend">
+          <div class="contador-num" id="cntPend">0</div>
+          <div class="contador-label">Pendientes</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       PANEL DERECHO — Evaluador sintáctico (US compañera)
+  ══════════════════════════════════════ -->
+  <div class="panel">
+    <div class="panel-title">🔍 Evaluador Sintáctico</div>
+
+    <!-- Formulario función -->
+    <div class="form-group">
+      <label>Nombre de la función</label>
+      <input type="text" id="inputFuncion" placeholder="Ej: calcularDescuento">
+    </div>
+    <div class="form-group">
+      <label>Extensión del archivo</label>
+      <select id="selectExtension">
+        <option value=".js">.js (JavaScript — límite 25)</option>
+        <option value=".java">.java (Java — límite 30)</option>
+        <option value=".py">.py (Python — límite 20)</option>
+        <option value=".rb">.rb (otro — límite 40)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Líneas de código (pegá el código)</label>
+      <textarea id="inputLineas"
+        placeholder="Pegá aquí el código de la función..."
+        style="width:100%; height:120px; padding:8px 10px;
+               border:1px solid #ddd; border-radius:8px;
+               font-size:12px; font-family:monospace; resize:vertical;">
+      </textarea>
+    </div>
+    <div class="form-group">
+      <label>Asociar a tarea (opcional)</label>
+      <select id="selectTareaFuncion">
+        <option value="">— Sin tarea —</option>
+      </select>
+    </div>
+    <button class="btn btn-teal" onclick="evaluarFuncion()">
+      ▶ Evaluar función al guardar
+    </button>
+
+    <!-- Lista de funciones evaluadas -->
+    <div class="list" id="listaFunciones">
+      <div class="empty">No hay funciones evaluadas</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Aviso flotante -->
+<div class="aviso" id="avisoFlotante">
+  <div class="aviso-msg">⚠️ Función muy larga. Se recomienda dividirla</div>
+  <div class="aviso-funcion" id="avisoNombreFuncion"></div>
+  <button class="aviso-close" onclick="cerrarAviso()">Cerrar</button>
+</div>
+
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+  // ══════════════════════════════════════
+  // CONEXIÓN SUPABASE
+  // ══════════════════════════════════════
+  const supabase = createClient(
+    'https://iqzsahvgafyrjgzgtzgk.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlxenNhaHZnYWZ5cmpnemd0emdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxODcwMzIsImV4cCI6MjA5NTc2MzAzMn0.hdCLQK5Yc6lYtaU4WEcjeQBvMdp4eCurGoTLP2KSifI'
+);
+
+  // ══════════════════════════════════════
+  // ESTADO
+  // ══════════════════════════════════════
+  let tareas    = [];
+  let pruebas   = [];
+  let funciones = [];
+  let tareaSeleccionada = null;
+
+  // ══════════════════════════════════════
+  // HELPERS
+  // ══════════════════════════════════════
+  function clasificarPrueba(resultado) {
+    if (!resultado) return 'PENDIENTE';
+    return resultado === 'passed' ? 'APROBADA' : 'FALLIDA';
+  }
+
+  function badgePrueba(estado) {
+    if (estado === 'APROBADA') return '<span class="badge badge-ok">✅ Aprobada</span>';
+    if (estado === 'FALLIDA')  return '<span class="badge badge-fail">❌ Fallida</span>';
+    return '<span class="badge badge-pend">⏳ Pendiente</span>';
+  }
+
+  function limitesPorExtension(ext) {
+    return { '.js': 25, '.java': 30, '.py': 20 }[ext] || 40;
+  }
+
+  function contarLineasLogicas(texto) {
+    return texto.split('\n').filter(l => {
+      const t = l.trim();
+      return t !== '' &&
+             !t.startsWith('//') &&
+             !t.startsWith('/*') &&
+             !t.startsWith('*') &&
+             !t.startsWith('*/');
+    }).length;
+  }
+
+  // ══════════════════════════════════════
+  // CARGA INICIAL DESDE SUPABASE
+  // ══════════════════════════════════════
+  async function cargarDatos() {
+    const [{ data: t }, { data: p }, { data: f }] = await Promise.all([
+      supabase.from('tarea').select('*').order('id'),
+      supabase.from('prueba').select('*').order('id'),
+      supabase.from('funcion').select('*').order('id')
+    ]);
+
+    tareas    = t || [];
+    pruebas   = p || [];
+    funciones = f || [];
+
+    actualizarSelectTareas();
+    renderizarTareas();
+    renderizarFunciones();
+  }
+
+  // ══════════════════════════════════════
+  // TAREAS
+  // ══════════════════════════════════════
+  async function agregarTarea() {
+    const nombre = document.getElementById('inputTarea').value.trim();
+    if (!nombre) return alert('Ingresá el nombre de la tarea');
+
+    const { data, error } = await supabase
+      .from('tarea')
+      .insert([{ nombre, estadovalidacion: 'Sin validación' }])
+      .select();
+
+    if (error) return alert('Error al guardar tarea: ' + error.message);
+
+    tareas.push(data[0]);
+    document.getElementById('inputTarea').value = '';
+    actualizarSelectTareas();
+    renderizarTareas();
+  }
+
+  async function agregarPrueba() {
+    const tareaId   = document.getElementById('selectTarea').value;
+    const nombre    = document.getElementById('inputPrueba').value.trim();
+    const resultado = document.getElementById('selectResultado').value;
+
+    if (!tareaId) return alert('Seleccioná una tarea');
+    if (!nombre)  return alert('Ingresá el nombre de la prueba');
+
+    const estado = clasificarPrueba(resultado);
+    const fecha  = resultado ? new Date().toLocaleDateString() : null;
+
+    const { data, error } = await supabase
+      .from('prueba')
+      .insert([{
+        nombre,
+        fechaejecucion:    fecha,
+        resultadoobtenido: resultado || null,
+        estado,
+        tareaid:           parseInt(tareaId)
+      }])
+      .select();
+
+    if (error) return alert('Error al guardar prueba: ' + error.message);
+
+    pruebas.push(data[0]);
+    document.getElementById('inputPrueba').value = '';
+    document.getElementById('selectResultado').value = '';
+
+    // Actualizar estado de la tarea en Supabase
+    await supabase
+      .from('tarea')
+      .update({ estadovalidacion: 'Con validación' })
+      .eq('id', parseInt(tareaId));
+
+    const tarea = tareas.find(t => t.id === parseInt(tareaId));
+    if (tarea) tarea.estadovalidacion = 'Con validación';
+
+    renderizarTareas();
+    if (tareaSeleccionada && tareaSeleccionada.id === parseInt(tareaId)) {
+      mostrarDetalleTarea(tareaSeleccionada);
+    }
+  }
+
+  function actualizarSelectTareas() {
+    const opciones = tareas.map(t =>
+      `<option value="${t.id}">${t.nombre}</option>`
+    ).join('');
+    document.getElementById('selectTarea').innerHTML =
+      '<option value="">— Seleccionar —</option>' + opciones;
+    document.getElementById('selectTareaFuncion').innerHTML =
+      '<option value="">— Sin tarea —</option>' + opciones;
+  }
+
+  function renderizarTareas() {
+    const contenedor = document.getElementById('listaTareas');
+    if (tareas.length === 0) {
+      contenedor.innerHTML = '<div class="empty">No hay tareas registradas</div>';
+      return;
+    }
+    contenedor.innerHTML = tareas.map(t => {
+      const sel = tareaSeleccionada && tareaSeleccionada.id === t.id ? ' selected' : '';
+      const estado = t.estadovalidacion || 'Sin validación';
+      const badge = estado === 'Sin validación'
+        ? '<span class="badge badge-sin">Sin validación</span>'
+        : '<span class="badge badge-con">Con validación</span>';
+      return `
+        <div class="list-item${sel}" onclick="window._mostrarDetalle(${t.id})">
+          <span>${t.nombre}</span>
+          ${badge}
+        </div>`;
+    }).join('');
+  }
+
+  function mostrarDetalleTarea(ref) {
+    tareaSeleccionada = tareas.find(t => t.id === ref.id);
+    if (!tareaSeleccionada) return;
+    renderizarTareas();
+
+    const pruebasTarea = pruebas.filter(p => p.tareaid === tareaSeleccionada.id);
+    const aprobadas  = pruebasTarea.filter(p => p.estado === 'APROBADA').length;
+    const fallidas   = pruebasTarea.filter(p => p.estado === 'FALLIDA').length;
+    const pendientes = pruebasTarea.filter(p => p.estado === 'PENDIENTE').length;
+
+    document.getElementById('detalleTituloTarea').textContent =
+      'Pruebas de: ' + tareaSeleccionada.nombre;
+    document.getElementById('cntTotal').textContent = pruebasTarea.length;
+    document.getElementById('cntOk').textContent    = aprobadas;
+    document.getElementById('cntFail').textContent  = fallidas;
+    document.getElementById('cntPend').textContent  = pendientes;
+
+    const lista = document.getElementById('listaPruebas');
+    lista.innerHTML = pruebasTarea.length === 0
+      ? '<div class="empty">Sin pruebas asociadas</div>'
+      : pruebasTarea.map(p => `
+          <div class="prueba-item">
+            <span>${p.nombre}</span>
+            <div style="display:flex;gap:6px;align-items:center">
+              <span style="color:#aaa;font-size:11px">
+                ${p.fechaejecucion || '—'}
+              </span>
+              ${badgePrueba(p.estado)}
+            </div>
+          </div>`).join('');
+
+    document.getElementById('detallePruebas').style.display = 'block';
+  }
+
+  // ══════════════════════════════════════
+  // EVALUADOR SINTÁCTICO
+  // ══════════════════════════════════════
+  async function evaluarFuncion() {
+    const nombre    = document.getElementById('inputFuncion').value.trim();
+    const extension = document.getElementById('selectExtension').value;
+    const codigo    = document.getElementById('inputLineas').value;
+    const tareaId   = document.getElementById('selectTareaFuncion').value;
+
+    if (!nombre)        return alert('Ingresá el nombre de la función');
+    if (!codigo.trim()) return alert('Ingresá el código de la función');
+
+    const lineasLogicas = contarLineasLogicas(codigo);
+    const limite        = limitesPorExtension(extension);
+    const superaLimite  = lineasLogicas > limite;
+
+    const { data, error } = await supabase
+      .from('funcion')
+      .insert([{
+        nombre,
+        extension,
+        lineaslogicasnetas: lineasLogicas,
+        superalimite:       superaLimite,
+        tareaid:            tareaId ? parseInt(tareaId) : null
+      }])
+      .select();
+
+    if (error) return alert('Error al guardar función: ' + error.message);
+
+    funciones.push(data[0]);
+    document.getElementById('inputFuncion').value = '';
+    document.getElementById('inputLineas').value  = '';
+
+    renderizarFunciones();
+    if (superaLimite) mostrarAviso(nombre);
+  }
+
+  function renderizarFunciones() {
+    const contenedor = document.getElementById('listaFunciones');
+    if (funciones.length === 0) {
+      contenedor.innerHTML = '<div class="empty">No hay funciones evaluadas</div>';
+      return;
+    }
+    contenedor.innerHTML = funciones.map(f => {
+      const lineas = f.lineaslogicasnetas ?? f.lineasLogicas;
+      const supera = f.superalimite ?? f.superaLimite;
+      const lim    = f.limite || limitesPorExtension(f.extension);
+      const badge  = supera
+        ? `<span class="badge badge-warn">⚠️ ${lineas}L > ${lim}</span>`
+        : `<span class="badge badge-ok">✅ ${lineas}L ≤ ${lim}</span>`;
+      const tarea  = f.tareaid
+        ? tareas.find(t => t.id === f.tareaid)
+        : null;
+      return `
+        <div class="list-item">
+          <div>
+            <div style="font-weight:500">
+              ${f.nombre}()
+              <span style="color:#aaa;font-size:11px">${f.extension}</span>
+            </div>
+            ${tarea
+              ? `<div style="font-size:11px;color:#888;margin-top:2px">
+                   Tarea: ${tarea.nombre}
+                 </div>`
+              : ''}
+          </div>
+          ${badge}
+        </div>`;
+    }).join('');
+  }
+
+  // ══════════════════════════════════════
+  // AVISO FLOTANTE
+  // ══════════════════════════════════════
+  function mostrarAviso(nombreFuncion) {
+    document.getElementById('avisoNombreFuncion').textContent =
+      'Función: ' + nombreFuncion;
+    document.getElementById('avisoFlotante').classList.add('visible');
+  }
+
+  function cerrarAviso() {
+    document.getElementById('avisoFlotante').classList.remove('visible');
+  }
+
+  // ══════════════════════════════════════
+  // EXPONER FUNCIONES AL HTML
+  // (necesario porque usamos type="module")
+  // ══════════════════════════════════════
+  window.agregarTarea    = agregarTarea;
+  window.agregarPrueba   = agregarPrueba;
+  window.evaluarFuncion  = evaluarFuncion;
+  window.cerrarAviso     = cerrarAviso;
+  window._mostrarDetalle = (id) => mostrarDetalleTarea({ id });
+
+  // ══════════════════════════════════════
+  // ARRANQUE
+  // ══════════════════════════════════════
+  cargarDatos();
+</script>
