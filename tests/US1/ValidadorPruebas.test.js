@@ -1,4 +1,4 @@
-const Prueba = require("../src/entidades/Prueba");
+const Prueba = require("../../src/entidades/Prueba");
 
 describe("US1 - Prueba", () => {
 

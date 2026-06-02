@@ -1,11 +1,9 @@
 class Prueba {
-  constructor(id, nombre, fechaEjecucion, resultadoObtenido, tareaId) {
-    this.id = id;
-    this.nombre = nombre;
-    this.fechaEjecucion = fechaEjecucion;
+  constructor(nombre, fechaEjecucion, resultadoObtenido) {
+    this.nombre            = nombre;
+    this.fechaEjecucion    = fechaEjecucion;
     this.resultadoObtenido = resultadoObtenido;
-    this.tareaId = tareaId;
-    this.estado = null;
+    this.estado            = null;
   }
 
   proveerNombre() {
