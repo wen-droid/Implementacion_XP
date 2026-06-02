@@ -8,7 +8,7 @@ class Prueba {
 
   proveerNombre() {
     return this.nombre;
-  }
+  }git
 
   proveerFechaEjecucion() {
     return this.fechaEjecucion;
